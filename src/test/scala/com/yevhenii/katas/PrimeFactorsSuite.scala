@@ -78,12 +78,47 @@ class PrimeFactorsSuite extends TestSuite {
   }
 
   test("prime factors of 100_000_000 should be [2, 5]") {
+    val (naiveElapsedMillis, naiveResult) = trackTime(PrimeFactors.computePrimeFactorsNaive(100_000_000))
+    val (elapsedMillis, result) = trackTime(PrimeFactors.computePrimeFactors(100_000_000))
+
+    result shouldBe 2 :: 5 :: Nil
+    naiveResult shouldBe 2 :: 5 :: Nil
+
+    println(s"Naive execution took $naiveElapsedMillis ms")
+    println(s"Optimized execution took $elapsedMillis ms")
+  }
+
+  test("smallest divider of even number is 2") {
+    forAll(simpleIntGenerator().map(_ * 2)) { n =>
+      PrimeFactors.smallestDivisor(n) shouldBe 2
+    }
+  }
+
+  test("smallest divider of prime number is the same number") {
+    forAll(Gen.oneOf(somePrimes)) { n =>
+      PrimeFactors.smallestDivisor(n) shouldBe n
+    }
+  }
+
+  test("smallest divider of squared prime number is that prime number") {
+    forAll(Gen.oneOf(somePrimes)) { n =>
+      PrimeFactors.smallestDivisor(Math.pow(n, 2).toInt) shouldBe n
+    }
+  }
+
+  test("naive implementation should be equal to optimized one") {
+    forAll(simpleIntGenerator()) { n =>
+      PrimeFactors.computePrimeFactors(n) shouldBe PrimeFactors.computePrimeFactorsNaive(n)
+    }
+  }
+
+  def trackTime[A](f: => A): (Long, A) = {
     val startNano = System.nanoTime()
-    PrimeFactors.computePrimeFactors(100_000_000) shouldBe 2 :: 5 :: Nil
+    val result = f
     val endNano = System.nanoTime()
     val elapsedMillis = (endNano - startNano) / 1000000
 
-    println(s"Execution took $elapsedMillis ms")
+    (elapsedMillis, result)
   }
 
   def simpleIntGenerator(): Gen[Int] = Gen.choose(2, 1000)

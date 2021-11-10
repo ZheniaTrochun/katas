@@ -1,8 +1,28 @@
 package com.yevhenii.katas
 
+import scala.annotation.tailrec
+
 object PrimeFactors {
 
   def computePrimeFactors(x: Int): List[Int] = {
+    loop(x, Set())
+      .toList
+      .sorted
+  }
+
+  @tailrec
+  private def loop(curr: Int, divisors: Set[Int]): Set[Int] = {
+    if (curr <= 1) {
+      divisors
+    } else {
+      val divisor = smallestDivisor(curr)
+      val updatedDivisors = divisors + divisor
+
+      loop(curr / divisor, updatedDivisors)
+    }
+  }
+
+  def computePrimeFactorsNaive(x: Int): List[Int] = {
     getDivisors(x)
       .filter(isPrime)
   }
@@ -22,5 +42,11 @@ object PrimeFactors {
     }
   }
 
-  // TODO: 1. implement more intelligent algorithm
+  def smallestDivisor(x: Int): Int = {
+    val maxProbableDivisor = Math.ceil(Math.sqrt(x)).toInt
+
+    (2 to maxProbableDivisor)
+      .find(x % _ == 0)
+      .getOrElse(x)
+  }
 }
